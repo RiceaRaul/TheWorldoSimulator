@@ -1,4 +1,4 @@
-#include "Environment.h"
+﻿#include "Environment.h"
 
 void Environment::initializeObstacles() {
     obstacleGrid = std::vector<std::vector<bool>>(GRID_SIZE, std::vector<bool>(GRID_SIZE, false));
@@ -35,7 +35,7 @@ void Environment::simulateDay() {
         system("cls"); // Clear screen
 
         // Display time
-        std::cout << "Time: " << simTime.getTimeString() << "\n\n";
+        std::cout << "Day " << simTime.getCurrentDay() << " Time: " << simTime.getTimeString() << "\n\n";
 
         // Display legend
         int rhaptorCount = std::count_if(entities.begin(), entities.end(), [](const std::shared_ptr<Entity>& e) { return e->getName() == "Rhaptor"; });
@@ -49,14 +49,15 @@ void Environment::simulateDay() {
         std::cout << "B - Katzel - " << katzelCount << "\n";
         std::cout << "C - Pysika - " << pysikaCount << "\n";
         std::cout << "D - Shoarek - " << shoarekCount << "\n";
-        std::cout << "E - Fournika - " << fournikaCount << "\n\n";
+        std::cout << "E - Fournika - " << fournikaCount << "\n";
         std::cout << "F - Plantha  - " << planthaCount << "\n\n";
 
+        char gridObsacle = 178;
         // Clear the grid
         for (int i = 0; i < GRID_SIZE; ++i) {
             for (int j = 0; j < GRID_SIZE; ++j) {
                 if (obstacleGrid[i][j]) {
-                    grid[i][j] = '#';
+                    grid[i][j] = gridObsacle;
                 }
                 else {
                     grid[i][j] = '.';
@@ -96,6 +97,44 @@ void Environment::simulateDay() {
         );
 
         std::this_thread::sleep_for(std::chrono::milliseconds(500)); // Smooth updates
+    }
+
+    system("cls");
+    std::cout << "The day has ended.\n\n";
+    std::cout << "Remaining entities:\n";
+    for (const auto& entity : entities) {
+        std::cout << "- " << entity->getName() << " at (" << entity->getX() << ", " << entity->getY() << ")\n";
+    }
+    std::cout << "\nTotal remaining entities: " << entities.size() << "\n";
+
+    // Ask user for next action
+    char choice;
+    do {
+        std::cout << "\nWhat would you like to do?\n";
+        std::cout << "1. Start a new day with the current entities.\n";
+        std::cout << "2. Start a new day with new entities.\n";
+        std::cout << "3. Exit simulation.\n";
+        std::cout << "Enter your choice (1/2/3): ";
+        std::cin >> choice;
+    } while (choice != '1' && choice != '2' && choice != '3');
+
+    switch (choice) {
+    case '1':
+		simTime.resetTime(); // Reset days for a new day
+        simulateDay();
+        break;
+    case '2': {
+        entities.clear(); // Clear current entities
+        Environment& env = Environment::getInstance();
+        env.randomEntityes();
+        initializeEntities(); // Initialize new entities
+        simTime = SimulationTime(); // Reset time for a new day
+        simulateDay();
+        break;
+    }
+    case '3':
+        std::cout << "Exiting simulation. Goodbye!\n";
+        return;
     }
 
     console.setOriginalFont();
